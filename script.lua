@@ -2,7 +2,7 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local pgui = player:WaitForChild("PlayerGui")
 
--- Limpeza de UI e Marcadores antigos
+-- Limpeza
 if pgui:FindFirstChild("BoosterPanel") then pgui.BoosterPanel:Destroy() end
 if game.Workspace:FindFirstChild("TP_Marks") then game.Workspace.TP_Marks:Destroy() end
 
@@ -18,22 +18,32 @@ Instance.new("UICorner", Main)
 local marksFolder = Instance.new("Folder", game.Workspace)
 marksFolder.Name = "TP_Marks"
 
--- COORDENADAS REAIS DO MAPA (Slots -> Caminho -> Loja de Equipamentos)
+-- FUNÇÃO PARA PEGAR POSIÇÃO REAL DE OBJETOS DO MAPA
+local function GetMapPosition(nameHint, fallbackPos)
+    for _, obj in pairs(game.Workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and (obj.Name:lower():find(nameHint:lower())) then
+            return obj.Position
+        end
+    end
+    return fallbackPos
+end
+
+-- PONTOS CALIBRADOS PARA DENTRO DO MAPA (Slots e Loja de Equipamentos)
 local mapPontos = {
-    [1] = Vector3.new(-38, 4, 15),  -- Slot 1 (Base Esquerda)
-    [2] = Vector3.new(-38, 4, 30),  -- Slot 2 (Base Esquerda)
-    [3] = Vector3.new(-10, 4, 10),  -- Transição/Caminho
-    [4] = Vector3.new(25, 4, -45)   -- Loja de Equipamentos (Topo/Direita)
+    [1] = GetMapPosition("Slot1", Vector3.new(-15, 4, 10)), -- Primeiro slot de brainrot
+    [2] = GetMapPosition("Slot2", Vector3.new(-15, 4, 25)), -- Segundo slot
+    [3] = Vector3.new(5, 4, 15),                            -- Meio do caminho (dentro do asfalto)
+    [4] = GetMapPosition("Equip", Vector3.new(40, 4, -30))  -- Loja de Equipamentos
 }
 
--- CRIAR QUADRADOS ROXOS NOS PONTOS (IGUAL AO DESENHO)
+-- CRIAR QUADRADOS ROXOS (Ajustados para o chão do mapa)
 for i, pos in pairs(mapPontos) do
     local p = Instance.new("Part", marksFolder)
-    p.Size = Vector3.new(3.5, 0.2, 3.5)
+    p.Size = Vector3.new(4, 0.1, 4) -- Quadrado mais fino para ficar rente ao chão
     p.Position = pos
     p.Anchored = true
     p.CanCollide = false
-    p.Color = Color3.fromRGB(180, 50, 255) -- Roxo Neon
+    p.Color = Color3.fromRGB(180, 50, 255)
     p.Material = Enum.Material.Neon
     
     local bg = Instance.new("BillboardGui", p)
@@ -46,7 +56,7 @@ end
 
 -- BOTÃO SEMI TP
 local SemiTP = Instance.new("TextButton", Main)
-SemiTP.Text = "Semi TP (Loja Equip.)"
+SemiTP.Text = "Semi TP (Interior)"
 SemiTP.Size = UDim2.new(0, 170, 0, 45)
 SemiTP.Position = UDim2.new(0, 15, 0, 30)
 SemiTP.BackgroundColor3 = Color3.fromRGB(70, 70, 130)
@@ -64,7 +74,7 @@ SemiTP.MouseButton1Click:Connect(function()
     end
 end)
 
--- FUNÇÃO BASE INVISÍVEL
+-- BASE INVISÍVEL
 local BaseBtn = Instance.new("TextButton", Main)
 BaseBtn.Text = "Base Invisível"
 BaseBtn.Size = UDim2.new(0, 170, 0, 45)
@@ -84,7 +94,7 @@ BaseBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- ESTILO DO PERSONAGEM (BRANCO E LIMPO)
+-- BONECO BRANCO (IGUAL AO VÍDEO)
 for _, v in pairs(character:GetChildren()) do
     if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") then v:Destroy() end
     if v:IsA("BasePart") then v.Color = Color3.new(1,1,1) end
