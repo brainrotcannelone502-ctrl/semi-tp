@@ -2,58 +2,56 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local pgui = player:WaitForChild("PlayerGui")
 
--- Limpa interfaces antigas
+-- Limpa interfaces e pontos antigos
 if pgui:FindFirstChild("BoosterPanel") then pgui.BoosterPanel:Destroy() end
+if game.Workspace:FindFirstChild("TP_Points") then game.Workspace.TP_Points:Destroy() end
 
 local sg = Instance.new("ScreenGui", pgui)
 sg.Name = "BoosterPanel"
-sg.ResetOnSpawn = false
 
--- DESIGN DO PAINEL (IGUAL À FOTO)
 local Main = Instance.new("Frame", sg)
-Main.Size = UDim2.new(0, 220, 0, 280)
-Main.Position = UDim2.new(0.85, 0, 0.5, -140)
-Main.BackgroundColor3 = Color3.fromRGB(45, 45, 85) -- Tom roxo escuro da foto
-Main.BorderSizePixel = 0
+Main.Size = UDim2.new(0, 220, 0, 180)
+Main.Position = UDim2.new(0.85, 0, 0.5, -90)
+Main.BackgroundColor3 = Color3.fromRGB(45, 45, 85)
 Main.Active = true
 Main.Draggable = true
-Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", Main)
 
--- Brilho/Borda colorida
-local UIStroke = Instance.new("UIStroke", Main)
-UIStroke.Color = Color3.fromRGB(120, 80, 200)
-UIStroke.Thickness = 2
+-- PASTA PARA OS QUADRADOS INDICADORES NO MAPA
+local tpFolder = Instance.new("Folder", game.Workspace)
+tpFolder.Name = "TP_Points"
 
-local Title = Instance.new("TextLabel", Main)
-Title.Text = "Booster"
-Title.Size = UDim2.new(1, 0, 0, 30)
-Title.TextColor3 = Color3.new(1, 1, 1)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 16
-Title.BackgroundTransparency = 1
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Position = UDim2.new(0, 10, 0, 5)
+-- PONTOS BASEADOS NA SUA IMAGEM (Coordenadas aproximadas de Slots e Loja)
+local pontos = {
+    [1] = Vector3.new(-38, 4, 15),  -- Slot 1 da base esquerda
+    [2] = Vector3.new(-38, 4, 35),  -- Primeiro slot (baixo)
+    [3] = Vector3.new(0, 4, 25),    -- Meio/Caminho desenhado
+    [4] = Vector3.new(45, 4, -10)   -- Lado da lojinha/Base direita
+}
 
--- FUNÇÃO: DEIXAR BONECO IGUAL AO VÍDEO (REMOVER ACESSÓRIOS E MUDAR COR)
-local function EstiloVideo()
-    for _, item in pairs(character:GetChildren()) do
-        if item:IsA("Accessory") or item:IsA("Shirt") or item:IsA("Pants") then
-            item:Destroy()
-        end
-    end
-    for _, part in pairs(character:GetChildren()) do
-        if part:IsA("BasePart") then
-            part.Color = Color3.new(1, 1, 1) -- Branco como no vídeo
-        end
-    end
+-- CRIAR QUADRADOS NOS PONTOS
+for i, pos in pairs(pontos) do
+    local p = Instance.new("Part", tpFolder)
+    p.Size = Vector3.new(2, 0.2, 2)
+    p.Position = pos
+    p.Anchored = true
+    p.CanCollide = false
+    p.Color = Color3.fromRGB(120, 80, 255) -- Roxo igual ao desenho
+    p.Material = Enum.Material.Neon
+    
+    local txt = Instance.new("BillboardGui", p)
+    txt.Size = UDim2.new(0, 50, 0, 20)
+    txt.AlwaysOnTop = true
+    txt.ExtentsOffset = Vector3.new(0, 2, 0)
+    local l = Instance.new("TextLabel", txt)
+    l.Text = tostring(i); l.BackgroundTransparency = 1; l.TextColor3 = Color3.new(1,1,1); l.Size = UDim2.new(1,0,1,0)
 end
-EstiloVideo()
 
--- BOTÃO: SEMI TP (3 LUGARES DO VÍDEO)
+-- BOTÃO SEMI TP (SEQUÊNCIA DO VÍDEO E IMAGEM)
 local SemiTP = Instance.new("TextButton", Main)
-SemiTP.Text = "Semi TP"
-SemiTP.Size = UDim2.new(0, 190, 0, 40)
-SemiTP.Position = UDim2.new(0, 15, 0, 50)
+SemiTP.Text = "Semi TP (Farm)"
+SemiTP.Size = UDim2.new(0, 190, 0, 45)
+SemiTP.Position = UDim2.new(0, 15, 0, 40)
 SemiTP.BackgroundColor3 = Color3.fromRGB(60, 60, 110)
 SemiTP.TextColor3 = Color3.new(1, 1, 1)
 SemiTP.Font = Enum.Font.GothamBold
@@ -62,68 +60,35 @@ Instance.new("UICorner", SemiTP)
 SemiTP.MouseButton1Click:Connect(function()
     local hrp = character:FindFirstChild("HumanoidRootPart")
     if hrp then
-        -- 1. Em cima do Pet (Próximo à base)
-        hrp.CFrame = CFrame.new(-30, 15, 10) 
-        task.wait(0.5)
-        -- 2. Meio das duas bases
-        hrp.CFrame = CFrame.new(0, 5, 20)
-        task.wait(0.5)
-        -- 3. Lado da lojinha (Shop)
-        hrp.CFrame = CFrame.new(45, 5, -15)
+        for i = 1, 4 do
+            hrp.CFrame = CFrame.new(pontos[i] + Vector3.new(0, 3, 0)) -- Teleporta um pouco acima do ponto
+            task.wait(0.6) -- Tempo de delay igual ao vídeo
+        end
     end
 end)
 
--- BOTÃO: BASE (DEIXAR BASES INVISÍVEIS)
+-- BOTÃO BASE (INVISÍVEL)
 local BaseBtn = Instance.new("TextButton", Main)
 BaseBtn.Text = "Base Invisível"
-BaseBtn.Size = UDim2.new(0, 190, 0, 40)
+BaseBtn.Size = UDim2.new(0, 190, 0, 45)
 BaseBtn.Position = UDim2.new(0, 15, 0, 100)
 BaseBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 110)
 BaseBtn.TextColor3 = Color3.new(1, 1, 1)
 BaseBtn.Font = Enum.Font.GothamBold
 Instance.new("UICorner", BaseBtn)
 
-local basesVisiveis = true
+local invis = false
 BaseBtn.MouseButton1Click:Connect(function()
-    basesVisiveis = not basesVisiveis
-    -- Procura por pastas comuns de bases em simuladores
+    invis = not invis
     for _, obj in pairs(game.Workspace:GetDescendants()) do
         if obj.Name:lower():find("base") or obj.Name:lower():find("plot") then
-            if obj:IsA("BasePart") then
-                obj.Transparency = basesVisiveis and 0 or 1
-            end
+            if obj:IsA("BasePart") then obj.Transparency = invis and 1 or 0 end
         end
     end
 end)
 
--- SLIDERS VISUAIS (CONFORME A FOTO "Booster")
-local function CreateVisualSlider(name, pos)
-    local label = Instance.new("TextLabel", Main)
-    label.Text = name .. "   56"
-    label.Size = UDim2.new(0, 190, 0, 20)
-    label.Position = pos
-    label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.new(1, 1, 1)
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 12
-    label.TextXAlignment = Enum.TextXAlignment.Left
-
-    local bar = Instance.new("Frame", Main)
-    bar.Size = UDim2.new(0, 190, 0, 4)
-    bar.Position = UDim2.new(pos.X.Scale, pos.X.Offset, pos.Y.Scale, pos.Y.Offset + 20)
-    bar.BackgroundColor3 = Color3.fromRGB(130, 80, 255)
-    
-    local circle = Instance.new("Frame", bar)
-    circle.Size = UDim2.new(0, 12, 0, 12)
-    circle.Position = UDim2.new(0.8, -6, 0.5, -6)
-    circle.BackgroundColor3 = Color3.new(1, 1, 1)
-    Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
+-- ESTILO DO BONECO (BRANCO/LIMPO)
+for _, v in pairs(character:GetChildren()) do
+    if v:IsA("Accessory") or v:IsA("Shirt") or v:IsA("Pants") then v:Destroy() end
+    if v:IsA("BasePart") then v.Color = Color3.new(1,1,1) end
 end
-
-CreateVisualSlider("Walk Speed", UDim2.new(0, 15, 0, 160))
-CreateVisualSlider("Steal Speed", UDim2.new(0, 15, 0, 210))
-
--- TECLA P PARA OCULTAR
-game:GetService("UserInputService").InputBegan:Connect(function(i, g)
-    if not g and i.KeyCode == Enum.KeyCode.P then Main.Visible = not Main.Visible end
-end)
